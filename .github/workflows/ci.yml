@@ -59,11 +59,28 @@ jobs:
 
       
       
-      - name: Add EC2 host
+      
+      - name: Diagnose SSH connection
         run: |
-          printf '%s\n' '13.51.206.113' > /tmp/ec2_host
-          ssh-keyscan -T 10 -H -f /tmp/ec2_host >> ~/.ssh/known_hosts
-          test -s ~/.ssh/known_hosts
+          echo "Checking TCP port 22..."
+          timeout 10 bash -c '</dev/tcp/13.51.206.113/22' \
+            && echo "TCP port 22 is reachable" \
+            || echo "TCP port 22 is NOT reachable"
+
+          echo "Checking SSH host key..."
+          ssh-keyscan -T 10 -v 13.51.206.113 \
+            > /tmp/host_keys 2> /tmp/keyscan_error || true
+
+          cat /tmp/keyscan_error
+
+          if [ -s /tmp/host_keys ]; then
+            cat /tmp/host_keys >> ~/.ssh/known_hosts
+            echo "Host key received"
+          else
+            echo "No host key received"
+            exit 1
+          fi
+
 
 
 
