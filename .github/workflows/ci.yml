@@ -57,9 +57,18 @@ jobs:
           echo "$EC2_SSH_KEY_B64" | base64 --decode > ~/.ssh/ec2_key
           chmod 600 ~/.ssh/ec2_key
 
+      
       - name: Add EC2 host
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          ssh-keyscan -H "${{ secrets.EC2_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -T 10 -v -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>ssh-keyscan.log || {
+            cat ssh-keyscan.log
+            echo "ssh-keyscan failed"
+            exit 1
+          }
+          test -s ~/.ssh/known_hosts
+
 
       - name: Deploy to EC2
         env:
