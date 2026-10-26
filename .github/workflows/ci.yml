@@ -58,16 +58,13 @@ jobs:
           chmod 600 ~/.ssh/ec2_key
 
       
+      
       - name: Add EC2 host
-        env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
-          ssh-keyscan -T 10 -v -H "$EC2_HOST" >> ~/.ssh/known_hosts 2>ssh-keyscan.log || {
-            cat ssh-keyscan.log
-            echo "ssh-keyscan failed"
-            exit 1
-          }
+          printf '%s\n' '13.51.206.113' > /tmp/ec2_host
+          ssh-keyscan -T 10 -H -f /tmp/ec2_host >> ~/.ssh/known_hosts
           test -s ~/.ssh/known_hosts
+
 
 
       - name: Deploy to EC2
